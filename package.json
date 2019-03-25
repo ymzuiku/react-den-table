@@ -1,0 +1,21 @@
+{
+  "name": "react-den-table",
+  "version": "0.0.1",
+  "description": "react-den-table",
+  "dependencies": {
+    "memoize-one": "^5.0.0",
+    "react-window": "^1.7.1"
+  },
+  "main": "lib/index.js",
+  "types": "src/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ymzuiku/react-den-form.git"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ymzuiku/react-den-form/issues"
+  },
+  "homepage": "https://github.com/ymzuiku/react-den-form#readme"
+}

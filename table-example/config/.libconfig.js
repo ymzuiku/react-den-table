@@ -11,7 +11,6 @@ module.exports = {
     "main": "lib/index.js",
     "types": "src/index.d.ts",
     "dependencies": {
-      "react": "^16.8.4",
       "memoize-one": "^5.0.0",
       "react-window": "^1.7.1"
     },
