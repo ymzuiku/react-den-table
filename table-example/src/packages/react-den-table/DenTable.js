@@ -1,7 +1,7 @@
 import './DenTable.css';
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
+import useComponentResize from 'use-component-resize';
 import { findDOMNode } from 'react-dom';
-import useGetResize from 'use-component-resize';
 import DenTableBody from './DenTableBody';
 import DenTableHeader from './DenTableHeader';
 
@@ -25,31 +25,25 @@ const DenTable = ({
   prefixStyle,
   suffixClassName,
   suffixStyle,
-  overscanCount = 3,
+  overscanCount = 2,
   onItemsRendered,
   renderHeaderTop,
   renderHeaderBottom,
   ...rest
 }) => {
-  const [boxRef, boxSize] = useGetResize(30);
-  const [antiData, setAntiData] = useState(data);
+  const [boxRef, boxSize] = useComponentResize(30);
   const bodyRef = useRef(null);
   const headerRef = useRef(null);
-
-  function handleOnChangeData(nextData) {
-    setAntiData(nextData);
-    onChangeData(nextData);
-  }
 
   useEffect(() => {
     tableKey += 1;
   }, []);
 
-  useEffect(() => {
-    setAntiData(data);
-  }, [data]);
-
   return useMemo(() => {
+    function handleOnChangeData(nextData) {
+      onChangeData(nextData);
+    }
+
     const prefixColumns = columns.filter(v => v.prefix === true);
     let prefixWidth = 0;
 
@@ -78,7 +72,7 @@ const DenTable = ({
             <DenTableHeader
               tableKey={tableKey}
               headerRef={headerRef}
-              data={antiData}
+              data={data}
               updateData={handleOnChangeData}
               columns={columns}
               getHeaderHeight={getHeaderHeight}
@@ -94,8 +88,8 @@ const DenTable = ({
               width={boxSize.width}
               height={boxSize.height}
               getHeaderHeight={getHeaderHeight}
-              itemCount={antiData.length}
-              data={antiData}
+              itemCount={data.length}
+              data={data}
               columns={columns}
               updateData={handleOnChangeData}
               updateScroll={handleUpdateScroll}
@@ -109,24 +103,24 @@ const DenTable = ({
       </div>
     );
   }, [
-    columns,
     boxRef,
-    style,
-    boxSize.width,
     boxSize.height,
-    renderHeaderTop,
-    antiData,
-    handleOnChangeData,
+    boxSize.width,
+    className,
+    columns,
+    data,
+    getCellHeight,
     getHeaderHeight,
-    headerStyle,
     headerClassName,
     headerProps,
-    renderHeaderBottom,
-    className,
-    getCellHeight,
+    headerStyle,
+    onChangeData,
     onItemsRendered,
     overscanCount,
+    renderHeaderBottom,
+    renderHeaderTop,
     rest,
+    style,
   ]);
 };
 

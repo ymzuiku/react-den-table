@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import App from 'src/App';
+import AppRepo from 'src/AppRepo';
 
 class Root extends React.Component {
   render() {
-    return <App />;
+    return <AppRepo />;
   }
 }
 

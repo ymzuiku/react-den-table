@@ -323,17 +323,17 @@ module.exports = function(webpackEnv) {
           chunks: 'all',
           minChunks: 2,
           name: isEnvDevelopment ? 'commons' : false,
-          cacheGroups: {
-            // vendor_modules: {
-            //   test: /[\\/]node_modules[\\/]/,
-            //   name: 'vendor_modules',
-            //   priority: -10,
-            // },
-            vendor_packages: {
-              test: /packages/,
-              name: 'vendor_packages',
-            },
-          },
+          // cacheGroups: {
+          // vendor_modules: {
+          //   test: /[\\/]node_modules[\\/]/,
+          //   name: 'vendor_modules',
+          //   priority: -10,
+          // },
+          // vendor_packages: {
+          //   test: /packages/,
+          //   name: 'vendor_packages',
+          // },
+          // },
         },
       }),
       // Keep the runtime chunk separated to enable long term caching

@@ -74,7 +74,7 @@ function DenTableHeader({
     });
   }
 
-  return (
+  return React.useCallback(
     <div
       ref={headerRef}
       className={headerClassName + ' den-no-scroll'}
@@ -91,7 +91,8 @@ function DenTableHeader({
       {...headerProps}
     >
       {renderItem()}
-    </div>
+    </div>,
+    [getHeaderHeight, columns, data, headerStyle, headerClassName, headerProps, tableKey, headerRef],
   );
 }
 

@@ -2,17 +2,17 @@ import React, { memo } from 'react';
 import { areEqual } from 'react-window';
 
 const Row = memo(({ data: params, index: rowIndex, style, rowProps }) => {
-  const { data, columns, onChangeData, rowStyle, rowClassName, itemSize, tableKey } = params;
+  const { data, columns, updateData, rowStyle, rowClassName, itemSize, tableKey } = params;
 
   const rowData = data[rowIndex];
 
   function handleOnChangeData(nextData) {
     if (typeof onChangeData === 'function') {
-      onChangeData(nextData);
+      updateData(nextData);
     }
   }
 
-  return (
+  return React.useCallback(
     <div
       className={rowClassName}
       style={{
@@ -28,14 +28,13 @@ const Row = memo(({ data: params, index: rowIndex, style, rowProps }) => {
     >
       {columns.map((column, colIndex) => {
         function handleOnChangeDataValue(value) {
-          // 如果是input属性, 读取子属性
           if (value && value.target) {
             data[rowIndex][column.key] = value.target.value;
           } else {
             data[rowIndex][column.key] = value;
           }
-          if (typeof onChangeData === 'function') {
-            onChangeData(data);
+          if (typeof updateData === 'function') {
+            updateData(data);
           }
         }
 
@@ -118,7 +117,8 @@ const Row = memo(({ data: params, index: rowIndex, style, rowProps }) => {
           </div>
         );
       })}
-    </div>
+    </div>,
+    [params, rowIndex, rowProps],
   );
 }, areEqual);
 

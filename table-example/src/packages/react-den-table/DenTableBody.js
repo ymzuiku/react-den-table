@@ -62,23 +62,23 @@ const DenTableBody = ({
       </VariableSizeList>
     );
   }, [
-    getHeaderHeight,
-    data,
-    columns,
-    updateData,
-    rowStyle,
-    rowClassName,
-    itemSize,
-    tableKey,
     bodyRef,
     className,
-    style,
-    width,
+    columns,
+    data,
+    getHeaderHeight,
     height,
+    itemSize,
     onItemsRendered,
     overscanCount,
     rest,
+    rowClassName,
+    rowStyle,
+    style,
+    tableKey,
+    updateData,
     updateScroll,
+    width,
   ]);
 };
 
