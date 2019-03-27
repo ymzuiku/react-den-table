@@ -6,54 +6,153 @@ import memoize from 'memoize-one';
 
 const createItemData = memoize(params => params);
 
-const RenderPrefix = ({ columns, data, style }) => {
-  return <div style={{ left: 0, position: 'sticky' }}>prefix</div>;
-};
+const RenderCell = React.memo(
+  ({ data, rowStyle, columns, column, rowIndex, isScrolling, columnIndex, height, ...rest }) => {
+    return React.useMemo(() => {
+      const key = column.key;
+      const value = rowIndex !== void 0 && data[rowIndex][key];
+      const renderKey = rowIndex !== void 0 ? 'renderCell' : 'renderHeader';
 
-const RenderSuffix = ({ columns, data, style }) => {
-  return <div style={{ right: 0, position: 'sticky' }}>suffix</div>;
-};
+      const width = typeof column.width === 'function' ? column.width() : column.width;
+      const otherWidth = typeof column.otherWidth === 'function' ? column.otherWidth() : column.otherWidth;
 
-const RenderCell = React.memo(({ data, columns, column, rowIndex, columnIndex, ...rest }) => {
-  return React.useMemo(() => {
-    const key = column.key;
-    const value = data[rowIndex][key];
+      let cell = column[renderKey]({
+        value,
+        key,
+        columns,
+        data,
+        column,
+        columnIndex,
+        rowIndex,
+        height,
+        width,
+        rowStyle,
+        isScrolling,
+      });
 
-    let cell = column.renderCell({
-      value,
-      key,
-      columns,
-      data,
-      column,
-      columnIndex,
-      rowIndex,
-    });
+      if (column.prefix) {
+        let left = 0;
+        for (let i = 0; i < columnIndex; i++) {
+          const theColumn = columns[i];
+          const theWidth = typeof theColumn.width === 'function' ? theColumn.width() : theColumn.width;
+          const theOtherWidth =
+            typeof theColumn.otherWidth === 'function' ? theColumn.otherWidth() : theColumn.otherWidth;
+          left += theWidth || 0;
+          left += theOtherWidth || 0;
+        }
+        cell = React.cloneElement(cell, {
+          style: {
+            ...(cell.props && cell.props.style),
+            left,
+            position: 'sticky',
+            zIndex: 5 + columnIndex,
+          },
+        });
+      } else if (column.suffix) {
+        let right = 0;
+        for (let i = columnIndex + 1; i < columns.length; i++) {
+          const theColumn = columns[i];
+          const theWidth = typeof theColumn.width === 'function' ? theColumn.width() : theColumn.width;
+          const theOtherWidth =
+            typeof theColumn.otherWidth === 'function' ? theColumn.otherWidth() : theColumn.otherWidth;
+          right += theWidth || 0;
+          right += theOtherWidth || 0;
+        }
+        cell = React.cloneElement(cell, {
+          style: {
+            ...(cell.props && cell.props.style),
+            right,
+            position: 'sticky',
+            zIndex: 5 + columnIndex,
+          },
+        });
+      }
 
-    if (column.prefix) {
-      cell = React.cloneElement(cell, { left: 0, position: 'sticky' });
-    } else if (column.suffix) {
-      cell = React.cloneElement(cell, { right: 0, position: 'sticky' });
-    }
-    return cell;
-  }, [columnIndex, rowIndex]);
-});
+      return cell;
+    }, [columnIndex, rowIndex]);
+  },
+);
 
-const RenderRow = React.memo(({ data: itemData, index, style, ...rest }) => {
-  const { data, columns, headerHeight } = itemData;
+const RenderRow = React.memo(({ data: itemData, index, isScrolling, style, ...rest }) => {
+  const { data, columns, headerHeight, rowProps, renderPrefixRow, renderSuffixRow } = itemData;
+  const props = rowProps ? rowProps({ data, index, columns, style }) : {};
+
   return (
-    <div style={{ ...style, display: 'flex', flexDirection: 'row' }}>
-      {columns.map(column => {
-        return <RenderCell data={data} column={column} columns={columns} rowIndex={index} columnIndex={1} />;
+    <div
+      {...props}
+      style={{
+        ...style,
+        top: style.top + headerHeight,
+        width: 'auto',
+        display: 'flex',
+        flexDirection: 'row',
+        ...props.style,
+      }}
+    >
+      {renderPrefixRow && renderPrefixRow({ columns, data, headerHeight, isScrolling })}
+      {columns.map((column, columnIndex) => {
+        return (
+          <RenderCell
+            key={columnIndex}
+            data={data}
+            column={column}
+            columns={columns}
+            rowIndex={index}
+            columnIndex={columnIndex}
+            height={style.height}
+            rowStyle={style}
+            isScrolling={isScrolling}
+          />
+        );
       })}
+      {renderSuffixRow && renderSuffixRow({ columns, data, headerHeight, isScrolling })}
     </div>
   );
 });
 
 // 表头
-const Header = ({ columns, data, headerHeight }) => {
+const Header = ({ columns, data, headerHeight, renderPrefixHeader, renderSuffixHeader, style, headerProps }) => {
+  const props = headerProps ? rowProps({ data, index, columns, style }) : {};
+
   return (
-    <div className="sticky" style={{ top: 0, left: 0, position: 'sticky', width: '100%', height: headerHeight }}>
-      header
+    <div
+      style={{
+        top: 0,
+        left: 0,
+        position: 'sticky',
+        width: 'auto',
+        height: headerHeight,
+        zIndex: 10 + columns.length,
+      }}
+    >
+      <div
+        {...props}
+        style={{
+          top: 0,
+          left: 0,
+          position: 'absolute',
+          width: 'auto',
+          height: headerHeight,
+          display: 'flex',
+          flexDirection: 'row',
+          ...props.style,
+        }}
+      >
+        {renderPrefixHeader && renderPrefixHeader({ columns, data, headerHeight })}
+        {columns.map((column, columnIndex) => {
+          return (
+            <RenderCell
+              key={columnIndex}
+              data={data}
+              column={column}
+              columns={columns}
+              rowIndex={void 0}
+              columnIndex={columnIndex}
+            />
+          );
+        })}
+        {renderSuffixHeader && renderSuffixHeader({ columns, data, headerHeight })}
+      </div>
     </div>
   );
 };
@@ -62,14 +161,14 @@ const innerElementType = props =>
   React.forwardRef(({ children, ...rest }, ref) => {
     return (
       <div ref={ref} {...rest}>
-        <Header {...props} />
+        <Header {...props} {...rest} />
         {children}
       </div>
     );
   });
 
 const Table = ({
-  overscanCount = 2,
+  overscanCount = 1,
   data,
   headerHeight = 60,
   columns,
@@ -78,6 +177,12 @@ const Table = ({
   getRowHeight,
   columnWidth = 100,
   rowHeight = 60,
+  renderPrefixHeader,
+  renderSuffixHeader,
+  renderPrefixRow,
+  renderSuffixRow,
+  rowProps,
+  headerProps,
   style,
 }) => {
   const [boxRef, boxSize] = useComponentResize(30);
@@ -97,8 +202,10 @@ const Table = ({
     const itemData = createItemData({
       data,
       columns,
+      rowProps,
       headerHeight,
-      cellCache: {},
+      renderPrefixRow,
+      renderSuffixRow,
     });
 
     console.log('table-re-render');
@@ -107,7 +214,15 @@ const Table = ({
       <div ref={boxRef} style={{ width, height, ...style }}>
         {boxSize.width && (
           <List
-            innerElementType={innerElementType({ columns, data, headerHeight })}
+            innerElementType={innerElementType({
+              headerProps,
+              columns,
+              data,
+              headerHeight,
+              renderPrefixHeader,
+              renderSuffixHeader,
+            })}
+            useIsScrolling
             itemData={itemData}
             itemSize={theGetRowHeight}
             itemCount={data.length}
