@@ -1,36 +1,25 @@
 /* eslint-disable */
 import React from 'react';
-import { VariableSizeGrid as Grid } from 'react-window';
+import { VariableSizeList as List } from 'react-window';
 import useComponentResize from 'use-component-resize';
 import memoize from 'memoize-one';
 
 const createItemData = memoize(params => params);
 
-const Cell = React.memo(({ data: itemData, columnIndex, rowIndex, style }) => {
+const RenderPrefix = ({ columns, data, style }) => {
+  return <div style={{ left: 0, position: 'sticky' }}>prefix</div>;
+};
+
+const RenderSuffix = ({ columns, data, style }) => {
+  return <div style={{ right: 0, position: 'sticky' }}>suffix</div>;
+};
+
+const RenderCell = React.memo(({ data, columns, column, rowIndex, columnIndex, ...rest }) => {
   return React.useMemo(() => {
-    const { data, columns, headerHeight, renderLoading, cellCache } = itemData;
-    const column = columns[columnIndex];
     const key = column.key;
     const value = data[rowIndex][key];
 
-    // if (!cellCache[rowIndex]) {
-    //   cellCache[rowIndex] = [];
-    // }
-    //
-    // if (!cellCache[rowIndex][columnIndex] && (rowIndex === 0 || column.prefix)) {
-    //   cellCache[rowIndex][columnIndex] = column.renderCell({
-    //     value,
-    //     key,
-    //     columns,
-    //     data,
-    //     column,
-    //     columnIndex,
-    //     rowIndex,
-    //     style: { ...style, zIndex: 10, position: 'sticky' },
-    //   });
-    // }
-
-    const cell = column.renderCell({
+    let cell = column.renderCell({
       value,
       key,
       columns,
@@ -38,13 +27,26 @@ const Cell = React.memo(({ data: itemData, columnIndex, rowIndex, style }) => {
       column,
       columnIndex,
       rowIndex,
-      // style,
-      style: { ...style, top: style.top + headerHeight },
     });
-    return cell;
 
-    return [...cellCache[rowIndex], cell].filter(Boolean);
-  }, [columnIndex, rowIndex, style]);
+    if (column.prefix) {
+      cell = React.cloneElement(cell, { left: 0, position: 'sticky' });
+    } else if (column.suffix) {
+      cell = React.cloneElement(cell, { right: 0, position: 'sticky' });
+    }
+    return cell;
+  }, [columnIndex, rowIndex]);
+});
+
+const RenderRow = React.memo(({ data: itemData, index, style, ...rest }) => {
+  const { data, columns, headerHeight } = itemData;
+  return (
+    <div style={{ ...style, display: 'flex', flexDirection: 'row' }}>
+      {columns.map(column => {
+        return <RenderCell data={data} column={column} columns={columns} rowIndex={index} columnIndex={1} />;
+      })}
+    </div>
+  );
 });
 
 // 表头
@@ -56,22 +58,12 @@ const Header = ({ columns, data, headerHeight }) => {
   );
 };
 
-const RenderPrefix = ({ columns, data, style }) => {
-  return <div style={{ left: 0, position: 'sticky' }}>prefix</div>;
-};
-
-const RenderSuffix = ({ columns, data, style }) => {
-  return <div style={{ right: 0, position: 'sticky' }}>suffix</div>;
-};
-
 const innerElementType = props =>
   React.forwardRef(({ children, ...rest }, ref) => {
     return (
       <div ref={ref} {...rest}>
         <Header {...props} />
         {children}
-        <RenderPrefix />
-        <RenderSuffix />
       </div>
     );
   });
@@ -114,19 +106,17 @@ const Table = ({
     return (
       <div ref={boxRef} style={{ width, height, ...style }}>
         {boxSize.width && (
-          <Grid
+          <List
             innerElementType={innerElementType({ columns, data, headerHeight })}
-            columnCount={columns.length}
-            columnWidth={theGetColumnWidth}
             itemData={itemData}
-            rowHeight={theGetRowHeight}
-            rowCount={data.length}
+            itemSize={theGetRowHeight}
+            itemCount={data.length}
             width={boxSize.width}
             height={boxSize.height}
             overscanCount={overscanCount}
           >
-            {Cell}
-          </Grid>
+            {RenderRow}
+          </List>
         )}
       </div>
     );

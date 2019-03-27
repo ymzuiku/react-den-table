@@ -11,7 +11,7 @@ for (let i = 0; i < y; i++) {
   const d = {};
 
   for (let b = 0; b < x; b++) {
-    d['col' + b] = b;
+    d['col' + b] = 'value-' + b;
   }
   dataSource.push(d);
 }
@@ -25,18 +25,8 @@ for (let i = 0; i < x; i++) {
     renderHeader: ({ columnIndex, style, height }) => {
       return <div style={{ ...style, top: 0, height }}>header{columnIndex}</div>;
     },
-    renderCell: ({ value, key, data, style, rowIndex, columnIndex }) => {
-      // 30% 的input框
-      // if (columnIndex % 3 === 1) {
-      //   return (
-      //     <input
-      //       style={style}
-      //       defaultValue={rowIndex * columnIndex + value}
-      //       onChange={e => (data[rowIndex][key] = e.target.value)}
-      //     />
-      //   );
-      // }
-      return <div style={style}>{rowIndex * columnIndex + value}</div>;
+    renderCell: ({ value, key, data, rowIndex, columnIndex }) => {
+      return <div style={{ width: 170 }}>{value}</div>;
     },
   });
 }
