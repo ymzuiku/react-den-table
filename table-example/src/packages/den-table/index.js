@@ -8,56 +8,60 @@ const createItemData = memoize(params => params);
 
 const Cell = React.memo(({ data: itemData, columnIndex, rowIndex, style }) => {
   return React.useMemo(() => {
-    const { data, columns, headerHeight, renderLoading } = itemData;
+    const { data, columns, headerHeight, renderLoading, cellCache } = itemData;
     const column = columns[columnIndex];
     const key = column.key;
     const value = data[rowIndex][key];
 
-    const header = column.renderHeader();
+    // if (!cellCache[rowIndex]) {
+    //   cellCache[rowIndex] = [];
+    // }
+    //
+    // if (!cellCache[rowIndex][columnIndex] && (rowIndex === 0 || column.prefix)) {
+    //   cellCache[rowIndex][columnIndex] = column.renderCell({
+    //     value,
+    //     key,
+    //     columns,
+    //     data,
+    //     column,
+    //     columnIndex,
+    //     rowIndex,
+    //     style: { ...style, zIndex: 10, position: 'sticky' },
+    //   });
+    // }
 
-    return column[columnIndex].renderCell({
+    const cell = column.renderCell({
       value,
       key,
-      columnItem,
+      columns,
       data,
       column,
       columnIndex,
       rowIndex,
-      style,
+      // style,
+      style: { ...style, top: style.top + headerHeight },
     });
+    return cell;
+
+    return [...cellCache[rowIndex], cell].filter(Boolean);
   }, [columnIndex, rowIndex, style]);
 });
 
-// const Header = ({
-//   headerProps = {},
-//   data,
-//   headerHeight: height,
-//   column,
-//   width: bodyWidth,
-//   getRowHeight,
-//   columnWidth,
-//   rowHeight,
-// }) => {
-//   return (
-//     <div
-//       style={{
-//         height,
-//         width: 'auto',
-//         display: 'flex',
-//         flexDirection: 'row',
-//         zIndex: 3,
-//         // overflowY: 'auto',
-//         overflowY: 'hidden',
-//         ...headerProps.style,
-//       }}
-//       {...headerProps}
-//     >
-//       {column.map(col => {
-//         return col.renderHeader({ data, column, bodyWidth, width: column.width || columnWidth, height });
-//       })}
-//     </div>
-//   );
-// };
+const StickyRow = ({ index, style }) => (
+  <div className="sticky" style={style}>
+    Sticky Row {index}
+  </div>
+);
+
+const innerElementType = columns =>
+  React.forwardRef(({ children, ...rest }, ref) => {
+    return (
+      <div ref={ref} {...rest}>
+        <StickyRow columns={columns} style={{ top: 0, left: 0, position: 'sticky', width: '100%', height: 35 }} />
+        {children}
+      </div>
+    );
+  });
 
 const Table = ({
   overscanCount = 2,
@@ -73,9 +77,11 @@ const Table = ({
 }) => {
   const [boxRef, boxSize] = useComponentResize(30);
 
+  // data = [data[0], ...data];
+
   return React.useMemo(() => {
     const theGetColumnWidth = index => {
-      return column[index].width || columnWidth;
+      return columns[index].width || columnWidth;
     };
 
     const theGetRowHeight = index => {
@@ -89,12 +95,18 @@ const Table = ({
       data,
       columns,
       headerHeight,
+      cellCache: {},
     });
+
+    const innerCache = {};
+
+    console.log('table-re-render');
 
     return (
       <div ref={boxRef} style={{ width, height, ...style }}>
         {boxSize.width && (
           <Grid
+            innerElementType={innerElementType(innerCache)}
             columnCount={columns.length}
             columnWidth={theGetColumnWidth}
             itemData={itemData}
@@ -109,18 +121,7 @@ const Table = ({
         )}
       </div>
     );
-  }, [getRowHeight, rowHeight, height, width, data, columns, columnWidth]);
+  }, [getRowHeight, rowHeight, height, width, data, columns, columnWidth, boxSize]);
 };
-
-// const Table = ({ width = '100%', height = '100%', style, headerProps, headerHeight, ...rest }) => {
-//   const [boxRef, boxSize] = useComponentResize(30);
-//
-//   return (
-//     <div ref={boxRef} style={{ width, height, ...style }}>
-//       // {boxSize.width && <Header headerProps={headerProps} width={boxSize.width} height={headerHeight} {...rest} />}
-//       {boxSize.width && <Body width={boxSize.width} height={boxSize.height - headerHeight} {...rest} />}
-//     </div>
-//   );
-// };
 
 export default Table;

@@ -20,21 +20,23 @@ for (let i = 0; i < x; i++) {
   columns.push({
     key: 'col' + i,
     width: 100,
+    prefix: i < 2,
+    suffix: i < x - 3,
     renderHeader: ({ columnIndex, style, height }) => {
       return <div style={{ ...style, top: 0, height }}>header{columnIndex}</div>;
     },
     renderCell: ({ value, key, data, style, rowIndex, columnIndex }) => {
       // 30% 的input框
-      if (columnIndex % 3 !== 1) {
-        return <div style={style}>{rowIndex * columnIndex + value}</div>;
-      }
-      return (
-        <input
-          style={style}
-          defaultValue={rowIndex * columnIndex + value}
-          onChange={e => (data[rowIndex][key] = e.target.value)}
-        />
-      );
+      // if (columnIndex % 3 === 1) {
+      //   return (
+      //     <input
+      //       style={style}
+      //       defaultValue={rowIndex * columnIndex + value}
+      //       onChange={e => (data[rowIndex][key] = e.target.value)}
+      //     />
+      //   );
+      // }
+      return <div style={style}>{rowIndex * columnIndex + value}</div>;
     },
   });
 }
