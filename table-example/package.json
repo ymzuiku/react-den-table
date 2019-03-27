@@ -24,7 +24,9 @@
     "react-dom": "^16.8.5",
     "react-dom-pseudo": "^1.1.21",
     "react-router-dom": "^4.3.1",
+    "react-virtualized": "^9.21.0",
     "react-window": "^1.7.1",
+    "react-window-infinite-loader": "^1.0.3",
     "use-component-resize": "^0.0.2"
   },
   "devDependencies": {
