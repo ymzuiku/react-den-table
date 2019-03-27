@@ -48,21 +48,30 @@ const Cell = React.memo(({ data: itemData, columnIndex, rowIndex, style }) => {
 });
 
 // 表头
-const Header = ({ columns, data, style }) => {
-  console.log(columns, data);
+const Header = ({ columns, data, headerHeight }) => {
   return (
-    <div className="sticky" style={style}>
+    <div className="sticky" style={{ top: 0, left: 0, position: 'sticky', width: '100%', height: headerHeight }}>
       header
     </div>
   );
+};
+
+const RenderPrefix = ({ columns, data, style }) => {
+  return <div style={{ left: 0, position: 'sticky' }}>prefix</div>;
+};
+
+const RenderSuffix = ({ columns, data, style }) => {
+  return <div style={{ right: 0, position: 'sticky' }}>suffix</div>;
 };
 
 const innerElementType = props =>
   React.forwardRef(({ children, ...rest }, ref) => {
     return (
       <div ref={ref} {...rest}>
-        <Header {...props} style={{ top: 0, left: 0, position: 'sticky', width: '100%', height: 35 }} />
+        <Header {...props} />
         {children}
+        <RenderPrefix />
+        <RenderSuffix />
       </div>
     );
   });
@@ -106,7 +115,7 @@ const Table = ({
       <div ref={boxRef} style={{ width, height, ...style }}>
         {boxSize.width && (
           <Grid
-            innerElementType={innerElementType({ columns, data })}
+            innerElementType={innerElementType({ columns, data, headerHeight })}
             columnCount={columns.length}
             columnWidth={theGetColumnWidth}
             itemData={itemData}
