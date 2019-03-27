@@ -47,17 +47,21 @@ const Cell = React.memo(({ data: itemData, columnIndex, rowIndex, style }) => {
   }, [columnIndex, rowIndex, style]);
 });
 
-const StickyRow = ({ index, style }) => (
-  <div className="sticky" style={style}>
-    Sticky Row {index}
-  </div>
-);
+// 表头
+const Header = ({ columns, data, style }) => {
+  console.log(columns, data);
+  return (
+    <div className="sticky" style={style}>
+      header
+    </div>
+  );
+};
 
-const innerElementType = columns =>
+const innerElementType = props =>
   React.forwardRef(({ children, ...rest }, ref) => {
     return (
       <div ref={ref} {...rest}>
-        <StickyRow columns={columns} style={{ top: 0, left: 0, position: 'sticky', width: '100%', height: 35 }} />
+        <Header {...props} style={{ top: 0, left: 0, position: 'sticky', width: '100%', height: 35 }} />
         {children}
       </div>
     );
@@ -76,8 +80,6 @@ const Table = ({
   style,
 }) => {
   const [boxRef, boxSize] = useComponentResize(30);
-
-  // data = [data[0], ...data];
 
   return React.useMemo(() => {
     const theGetColumnWidth = index => {
@@ -98,15 +100,13 @@ const Table = ({
       cellCache: {},
     });
 
-    const innerCache = {};
-
     console.log('table-re-render');
 
     return (
       <div ref={boxRef} style={{ width, height, ...style }}>
         {boxSize.width && (
           <Grid
-            innerElementType={innerElementType(innerCache)}
+            innerElementType={innerElementType({ columns, data })}
             columnCount={columns.length}
             columnWidth={theGetColumnWidth}
             itemData={itemData}
